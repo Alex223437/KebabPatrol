@@ -5,19 +5,23 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.example.kebabpatrol.data.local.entity.KebabEntity
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface KebabDao {
 
-    // ВЗЯТЬ ВСЁ (для оффлайна)
     @Query("SELECT * FROM kebabs")
-    suspend fun getKebabs(): List<KebabEntity>
+    fun getAllKebabs(): Flow<List<KebabEntity>>
 
-    // ПОЛОЖИТЬ ПАРТИЮ (если есть совпадения - перезаписать)
+    @Query("SELECT * FROM kebabs WHERE id = :id")
+    suspend fun getKebabById(id: Int): KebabEntity?
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertKebab(kebab: KebabEntity)
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertKebabs(kebabs: List<KebabEntity>)
 
-    // ОЧИСТИТЬ ОБЩАК (перед загрузкой новых)
     @Query("DELETE FROM kebabs")
     suspend fun clearKebabs()
 }

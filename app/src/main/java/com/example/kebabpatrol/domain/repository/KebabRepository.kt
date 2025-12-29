@@ -1,9 +1,10 @@
 package com.example.kebabpatrol.domain.repository
 
 import com.example.kebabpatrol.domain.model.KebabPlace
+import kotlinx.coroutines.flow.Flow
 
 interface KebabRepository {
-    suspend fun getKebabs(): List<KebabPlace>
+    fun getKebabs(): Flow<List<KebabPlace>>
     suspend fun getKebabById(id: Int): KebabPlace?
-    suspend fun addKebab(name: String, description: String, rating: Double, lat: Double, lng: Double)
+    suspend fun insertKebab(kebab: KebabPlace)
 }

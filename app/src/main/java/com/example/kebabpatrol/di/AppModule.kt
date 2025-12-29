@@ -16,10 +16,9 @@ import com.example.kebabpatrol.data.repository.KebabRepositoryImpl
 import com.example.kebabpatrol.domain.repository.KebabRepository
 
 @Module
-@InstallIn(SingletonComponent::class) // Этот модуль живет, пока живет приложение
+@InstallIn(SingletonComponent::class)
 object AppModule {
 
-    // ВСТАВЬ СЮДА СВОЮ ССЫЛКУ! СЛЭШ В КОНЦЕ ОБЯЗАТЕЛЕН!
     private const val BASE_URL = "https://69514b9770e1605a1089bd37.mockapi.io/api/v1/"
 
     @Provides
@@ -27,13 +26,10 @@ object AppModule {
     fun provideKebabApi(): KebabApi {
         return Retrofit.Builder()
             .baseUrl(BASE_URL)
-            .addConverterFactory(GsonConverterFactory.create()) // Чтоб понимал JSON
+            .addConverterFactory(GsonConverterFactory.create())
             .build()
             .create(KebabApi::class.java)
     }
-//    fun provideKebabRepository(api: KebabApi): com.example.kebabpatrol.domain.repository.KebabRepository {
-//        return com.example.kebabpatrol.data.repository.KebabRepositoryImpl(api)
-//    }
 
     @Provides
     @Singleton
@@ -42,23 +38,14 @@ object AppModule {
             app,
             KebabDatabase::class.java,
             "kebab_db.db"
-        ).build()
+        )
+            .fallbackToDestructiveMigration()
+            .build()
     }
 
-    // 2. ВЫДАЕМ DAO (чтобы Репозиторий не лез в саму базу)
     @Provides
     @Singleton
     fun provideDao(db: KebabDatabase): KebabDao {
-        return db.dao // Исправлено: db.dao, а не db.kebabDao
+        return db.dao
     }
-
-//    @Provides
-//    @Singleton
-//    fun provideKebabRepository(
-//        api: KebabApi,
-//        dao: KebabDao // <--- 1. ДОБАВЬ ЭТОТ АРГУМЕНТ СЮДА!
-//    ): KebabRepository {
-//        // 2. И ПЕРЕДАЙ ЕГО В КОНСТРУКТОР!
-//        return KebabRepositoryImpl(api, dao)
-//    }
 }

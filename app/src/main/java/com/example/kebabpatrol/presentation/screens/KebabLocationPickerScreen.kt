@@ -3,12 +3,12 @@ package com.example.kebabpatrol.presentation.screens
 import android.Manifest
 import android.annotation.SuppressLint
 import android.preference.PreferenceManager
-import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AddLocation
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.MyLocation
@@ -17,7 +17,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavController
@@ -36,10 +39,10 @@ fun KebabLocationPickerScreen(
     val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
     var mapView by remember { mutableStateOf<MapView?>(null) }
 
-    // Центр Злина (стартовая точка)
+    var isMapInitialized by remember { mutableStateOf(false) }
+
     val startPoint = GeoPoint(49.2275, 17.6705)
 
-    // Функция поиска себя (копипаст, брат, но для дела можно)
     @SuppressLint("MissingPermission")
     fun findMe() {
         fusedLocationClient.lastLocation.addOnSuccessListener { location ->
@@ -65,66 +68,78 @@ fun KebabLocationPickerScreen(
     }
 
     Scaffold(
+        containerColor = Color(0xFF121212),
         floatingActionButton = {
             Column(horizontalAlignment = Alignment.End) {
-                // КНОПКА "ГДЕ Я"
-                FloatingActionButton(onClick = { permissionLauncher.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION)) }) {
-                    Icon(Icons.Default.MyLocation, contentDescription = "Найти меня")
+                FloatingActionButton(
+                    onClick = { permissionLauncher.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION)) },
+                    containerColor = Color.White,
+                    contentColor = Color.Black,
+                    shape = RoundedCornerShape(4.dp)
+                ) {
+                    Icon(Icons.Default.MyLocation, contentDescription = "Find Me")
                 }
+
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // КНОПКА "ПОДТВЕРДИТЬ ВЫБОР" (ГАЛОЧКА)
-                ExtendedFloatingActionButton(
+                FloatingActionButton(
                     onClick = {
                         mapView?.mapCenter?.let { center ->
-                            // ЛЕТИМ ЗАПОЛНЯТЬ ДАННЫЕ С ЭТИМИ КООРДИНАТАМИ
                             navController.navigate(Screen.Add.passLocation(center.latitude, center.longitude))
                         }
                     },
-                    containerColor = Color.Red,
+                    containerColor = Color(0xFFD32F2F),
                     contentColor = Color.White,
-                    icon = { Icon(Icons.Default.Check, "Выбрать") },
-                    text = { Text("ВЫБРАТЬ ЭТУ ТОЧКУ") }
-                )
+                    shape = RoundedCornerShape(4.dp)
+                ) {
+                    Icon(Icons.Default.Check, contentDescription = "Confirm Location")
+                }
             }
         }
     ) { padding ->
         Box(modifier = Modifier.fillMaxSize().padding(padding)) {
-            // КАРТА
             AndroidView(
                 modifier = Modifier.fillMaxSize(),
                 factory = { ctx ->
                     MapView(ctx).apply {
                         setTileSource(TileSourceFactory.MAPNIK)
                         setMultiTouchControls(true)
-                        controller.setZoom(14.0)
-                        controller.setCenter(startPoint)
                         mapView = this
+                    }
+                },
+                update = { map ->
+                    if (!isMapInitialized) {
+                        map.controller.setZoom(17.0)
+                        map.controller.setCenter(startPoint)
+                        isMapInitialized = true
                     }
                 }
             )
 
-            // ПРИЦЕЛ ПО ЦЕНТРУ (НЕПОДВИЖНЫЙ)
             Icon(
                 imageVector = Icons.Default.AddLocation,
-                contentDescription = "Прицел",
-                tint = Color.Red,
+                contentDescription = "Target",
+                tint = Color(0xFFD32F2F),
                 modifier = Modifier
-                    .size(48.dp)
+                    .size(96.dp)
                     .align(Alignment.Center)
-                    .padding(bottom = 24.dp) // Чуть выше центра, чтоб ножка стояла в точке
+                    .padding(bottom = 48.dp)
             )
 
-            // ПОДСКАЗКА СВЕРХУ
             Surface(
-                modifier = Modifier.padding(16.dp).align(Alignment.TopCenter),
-                shape = MaterialTheme.shapes.medium,
-                color = Color.Black.copy(alpha = 0.7f)
+                modifier = Modifier
+                    .padding(top = 32.dp)
+                    .align(Alignment.TopCenter)
+                    .border(1.dp, Color(0xFF333333)),
+                shape = RectangleShape,
+                color = Color(0xFF212121).copy(alpha = 0.9f)
             ) {
                 Text(
-                    text = "Наведи прицел на шаурму!",
+                    text = "AIM AT TARGET",
                     color = Color.White,
-                    modifier = Modifier.padding(8.dp)
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    fontFamily = FontFamily.Monospace,
+                    fontWeight = FontWeight.Bold
                 )
             }
         }

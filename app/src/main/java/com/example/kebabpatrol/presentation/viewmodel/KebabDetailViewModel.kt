@@ -11,29 +11,24 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-// 1. СОСТОЯНИЕ (State) - ЧТО ПРОИСХОДИТ НА ЭКРАНЕ
-// (Можешь вынести в отдельный файл KebabState.kt, но можно и тут оставить, чтоб не потерял)
 sealed interface KebabState {
-    data object Loading : KebabState // Крутим барабан
-    data class Success(val kebab: KebabPlace) : KebabState // Мясо найдено!
-    data class Error(val message: String) : KebabState // Менты повязали (ошибка)
+    data object Loading : KebabState
+    data class Success(val kebab: KebabPlace) : KebabState
+    data class Error(val message: String) : KebabState
 }
 
 @HiltViewModel
 class KebabDetailViewModel @Inject constructor(
-    private val repository: KebabRepository, // Наш склад с данными
-    savedStateHandle: SavedStateHandle // Сюда падает ID из навигации (малява)
+    private val repository: KebabRepository,
+    savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    // Вытаскиваем ID сразу. "kebabId" должно совпадать с тем, что мы писали в MainActivity (route)
     private val kebabId: Int = checkNotNull(savedStateHandle["kebabId"])
 
-    // Состояние экрана (по умолчанию - загрузка)
     private val _state = MutableStateFlow<KebabState>(KebabState.Loading)
     val state = _state.asStateFlow()
 
     init {
-        // Как только VM создалась - сразу ищем кебаб
         loadKebab()
     }
 
@@ -41,17 +36,15 @@ class KebabDetailViewModel @Inject constructor(
         viewModelScope.launch {
             _state.value = KebabState.Loading
             try {
-                // ТУТ ДОЛЖНА БЫТЬ ФУНКЦИЯ В ТВОЕМ РЕПОЗИТОРИИ!
-                // Если её нет - добавь в KebabRepository: suspend fun getKebabById(id: Int): KebabPlace?
                 val kebab = repository.getKebabById(kebabId)
 
                 if (kebab != null) {
                     _state.value = KebabState.Success(kebab)
                 } else {
-                    _state.value = KebabState.Error("Шаурма не найдена, начальник! Сбежала!")
+                    _state.value = KebabState.Error("Target lost. Kebab ID $kebabId not found.")
                 }
             } catch (e: Exception) {
-                _state.value = KebabState.Error("Ошибка связи с общаком: ${e.message}")
+                _state.value = KebabState.Error("Intel failure: ${e.message}")
             }
         }
     }
