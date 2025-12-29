@@ -8,6 +8,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons // <--- НЕ ЗАБУДЬ ЭТО
 import androidx.compose.material.icons.filled.LocationOn // <--- И ЭТО ДЛЯ ЗНАЧКА
+import androidx.compose.material.icons.filled.Add // ПЛЮСИК
+import androidx.compose.material.icons.filled.Map // КАРТА
 import androidx.compose.material3.* // <--- ТУТ ВСЕ МАТЕРИАЛЫ
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -24,6 +26,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.kebabpatrol.domain.model.KebabPlace
+import com.example.kebabpatrol.presentation.navigation.Screen
 import com.example.kebabpatrol.presentation.viewmodel.KebabListViewModel
 
 @Composable
@@ -39,12 +42,28 @@ fun KebabListScreen(
     Scaffold(
         // КНОПКА КАРТЫ (FAB) - ТЕПЕРЬ ОНА ЕСТЬ!
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = { navController.navigate("map") }, // ЛЕТИМ НА КАРТУ
-                containerColor = Color.Black, // ЧЕРНАЯ, КАК ДУША МЕНТА
-                contentColor = Color.White
-            ) {
-                Icon(imageVector = Icons.Default.LocationOn, contentDescription = "Карта")
+            // ДВЕ КНОПКИ В СТОЛБИК
+            Column(horizontalAlignment = Alignment.End) {
+
+                // 1. КНОПКА "ДОБАВИТЬ" (ВЕДЕТ НА ПИКЕР)
+                FloatingActionButton(
+                    onClick = { navController.navigate(Screen.LocationPicker.route) },
+                    containerColor = Color.Red, // Красная - важная
+                    contentColor = Color.White
+                ) {
+                    Icon(Icons.Default.Add, contentDescription = "Добавить кебаб")
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // 2. КНОПКА "ОТКРЫТЬ КАРТУ" (СТАРАЯ, ВЕДЕТ НА ПРОСМОТР)
+                FloatingActionButton(
+                    onClick = { navController.navigate(Screen.Map.route) },
+                    containerColor = Color.Black,
+                    contentColor = Color.White
+                ) {
+                    Icon(Icons.Default.Map, contentDescription = "Смотреть карту")
+                }
             }
         }
     ) { paddingValues -> // paddingValues - ЭТО ВАЖНО, ЧТОБ СПИСОК НЕ ЗАЛЕЗ ПОД КНОПКУ

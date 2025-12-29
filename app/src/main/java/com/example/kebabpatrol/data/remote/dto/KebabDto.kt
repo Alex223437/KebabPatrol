@@ -22,7 +22,9 @@ fun KebabDto.toDomain(): KebabPlace {
         name = name,
         description = description,
         rating = rating,
-        image = image ?: "https://via.placeholder.com/150"
+        image = image ?: "https://www.savorythoughts.com/wp-content/uploads/2021/09/Doner-Kebab-Recipe-Savory-Thoughts-8.jpg",
+        lat = lat,
+        lng = lng
         // isFavorite тут нет, оно локальное
     )
 }

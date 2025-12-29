@@ -8,5 +8,7 @@ data class KebabPlace(
     val description: String,  // За что сидит (Описание)
     val rating: Double,       // Авторитет (Рейтинг)
     val image: String,
-    val isFavorite: Boolean = false // В уважухе или нет
+    val isFavorite: Boolean = false, // В уважухе или нет
+    val lat: Double, // <--- ЭТИ ДВА ПАССАЖИРА ОБЯЗАНЫ БЫТЬ!
+    val lng: Double
 )

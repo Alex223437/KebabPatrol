@@ -13,6 +13,15 @@ sealed class Screen(val route: String) {
     // Тут только база, без аргументов
     data object Details : Screen("details")
 
+    data object LocationPicker : Screen("location_picker")
+
+    data object Add : Screen("add_kebab/{lat}/{lng}") {
+        // Функция, чтобы удобно вызывать: Screen.Add.passLocation(55.0, 37.0)
+        fun passLocation(lat: Double, lng: Double): String {
+            return "add_kebab/$lat/$lng"
+        }
+    }
+
     // Вспомогательная хрень, чтоб аргументы (ID) приклеивать
     fun withArgs(vararg args: String): String {
         return buildString {

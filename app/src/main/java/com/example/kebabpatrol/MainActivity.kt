@@ -18,6 +18,8 @@ import com.example.kebabpatrol.presentation.screens.KebabListScreen
 import com.example.kebabpatrol.presentation.screens.KebabMapScreen
 import com.example.kebabpatrol.ui.theme.KebabPatrolTheme
 import dagger.hilt.android.AndroidEntryPoint
+import com.example.kebabpatrol.presentation.screens.KebabAddScreen // И ЭТО!
+import com.example.kebabpatrol.presentation.screens.KebabLocationPickerScreen
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -46,6 +48,23 @@ class MainActivity : ComponentActivity() {
                             arguments = listOf(navArgument("kebabId") { type = NavType.IntType })
                         ) {
                             KebabDetailScreen(navController)
+                        }
+                        composable(
+                            route = Screen.Add.route, // Это "add_kebab/{lat}/{lng}"
+                            arguments = listOf(
+                                navArgument("lat") { type = NavType.FloatType }, // Float, потому что в URL double иногда глючит
+                                navArgument("lng") { type = NavType.FloatType }
+                            )
+                        ) { backStackEntry ->
+                            // Вытаскиваем координаты из рюкзака
+                            val lat = backStackEntry.arguments?.getFloat("lat")?.toDouble() ?: 0.0
+                            val lng = backStackEntry.arguments?.getFloat("lng")?.toDouble() ?: 0.0
+
+                            // Открываем экран и отдаем ему координаты
+                            KebabAddScreen(navController = navController, lat = lat, lng = lng)
+                        }
+                        composable(Screen.LocationPicker.route) {
+                            KebabLocationPickerScreen(navController)
                         }
                     }
                 }
