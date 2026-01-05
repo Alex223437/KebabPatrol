@@ -1,34 +1,43 @@
 package com.example.kebabpatrol.data.repository
 
+import com.example.kebabpatrol.data.local.KebabDao
+import com.example.kebabpatrol.data.local.entity.toDomain
+import com.example.kebabpatrol.data.local.entity.toEntity
+
 import com.example.kebabpatrol.data.remote.KebabApi
-import com.example.kebabpatrol.data.remote.dto.toDomain
-import com.example.kebabpatrol.domain.repository.KebabRepository
+import com.example.kebabpatrol.data.remote.dto.toEntity
 import com.example.kebabpatrol.domain.model.KebabPlace
+import com.example.kebabpatrol.domain.repository.KebabRepository
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
 import javax.inject.Inject
 
-// Завхоз (Hilt) подгоняет нам API
 class KebabRepositoryImpl @Inject constructor(
-    private val api: KebabApi
+    private val api: KebabApi,
+    private val dao: KebabDao
 ) : KebabRepository {
 
-    // 1. ПОЛУЧИТЬ ВЕСЬ СПИСОК (ОБЩАК)
-    override suspend fun getKebabs(): List<KebabPlace> {
-        return try {
-            // Зовем API (стучимся к барыге)
-            val dtos = api.getKebabs()
-            // Превращаем грязные DTO в чистые модели (отмываем бабки)
-            dtos.map { it.toDomain() }
-        } catch (e: Exception) {
-            // Если API упал - возвращаем пустой список, чтоб приложуха не крашнулась
-            e.printStackTrace()
-            emptyList()
-        }
+    override fun getKebabs(): Flow<List<KebabPlace>> {
+        return dao.getAllKebabs()
+            .map { entities ->
+                entities.map { it.toDomain() }
+            }
+            .onStart {
+                try {
+                    val remoteKebabs = api.getKebabs()
+                    dao.insertKebabs(remoteKebabs.map { it.toEntity() })
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
     }
 
-    // 2. ПОЛУЧИТЬ КОНКРЕТНЫЙ КЕБАБ ПО ID (ВЫДЕРНУТЬ ЧЕЛОВЕКА ИЗ ТОЛПЫ)
     override suspend fun getKebabById(id: Int): KebabPlace? {
-        // ВАЖНО: Мы вызываем НАШУ ЖЕ функцию getKebabs(), а не выдуманную getAllKebabs()
-        // Ищем в списке того, у кого id совпадает.
-        return getKebabs().find { it.id == id }
+        return dao.getKebabById(id)?.toDomain()
+    }
+
+    override suspend fun insertKebab(kebab: KebabPlace) {
+        dao.insertKebab(kebab.toEntity())
     }
 }
